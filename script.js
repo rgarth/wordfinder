@@ -1,0 +1,331 @@
+// Seed-based random number generator
+class SeededRandom {
+    constructor(seed) {
+        this.seed = seed || Math.floor(Math.random() * 1000000);
+    }
+
+    next() {
+        this.seed = (this.seed * 9301 + 49297) % 233280;
+        return this.seed / 233280;
+    }
+
+    nextInt(max) {
+        return Math.floor(this.next() * max);
+    }
+}
+
+// Game state
+let currentWord = '';
+let currentGuess = '';
+let guesses = [];
+let maxGuesses = 6;
+let gameSeed = null;
+let seededRandom = null;
+let gameWon = false;
+let gameOver = false;
+
+// Dictionary API - using Free Dictionary API
+const DICTIONARY_API = 'https://api.dictionaryapi.dev/api/v2/entries/en/';
+
+// Initialize game
+function initGame(seed = null) {
+    gameSeed = seed || generateSeed();
+    seededRandom = new SeededRandom(gameSeed);
+    currentGuess = '';
+    guesses = [];
+    gameWon = false;
+    gameOver = false;
+    
+    document.getElementById('seedInput').value = gameSeed;
+    document.getElementById('message').textContent = '';
+    document.getElementById('message').className = 'message';
+    
+    renderBoard();
+    loadPuzzleWord();
+}
+
+// Generate a random seed
+function generateSeed() {
+    return Math.floor(Math.random() * 1000000);
+}
+
+// Load puzzle word using seed-based selection from API
+async function loadPuzzleWord() {
+    try {
+        showMessage('Loading puzzle...', 'info');
+        
+        // Fetch a large list of 5-letter words from a word list API
+        // Using a public word list that's commonly available
+        const response = await fetch('https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt');
+        const text = await response.text();
+        const allWords = text.split('\n').filter(word => word.length === 5 && /^[a-z]+$/.test(word));
+        
+        // Use seed to pick a word deterministically from the list
+        const wordIndex = seededRandom.nextInt(allWords.length);
+        const candidateWord = allWords[wordIndex].toUpperCase();
+        
+        // Validate it's a real word using dictionary API
+        const isValid = await validateWord(candidateWord);
+        
+        if (isValid) {
+            currentWord = candidateWord;
+        } else {
+            // If invalid, try next words in the list deterministically
+            for (let i = 0; i < Math.min(100, allWords.length); i++) {
+                const nextIndex = (wordIndex + i) % allWords.length;
+                const nextWord = allWords[nextIndex].toUpperCase();
+                if (await validateWord(nextWord)) {
+                    currentWord = nextWord;
+                    break;
+                }
+            }
+        }
+        
+        // Final fallback: use the word from the list even if dictionary API fails
+        if (!currentWord && allWords.length > 0) {
+            currentWord = allWords[wordIndex].toUpperCase();
+        }
+        
+        if (currentWord) {
+            console.log('Puzzle word loaded:', currentWord);
+            showMessage('', '');
+        } else {
+            throw new Error('Could not load puzzle word');
+        }
+    } catch (error) {
+        console.error('Error loading puzzle word:', error);
+        showMessage('Error loading puzzle. Please try again.', 'error');
+        // Fallback to a default word if API fails
+        currentWord = 'HELLO';
+    }
+}
+
+// Validate word using dictionary API
+async function validateWord(word) {
+    try {
+        const response = await fetch(`${DICTIONARY_API}${word.toLowerCase()}`);
+        return response.ok;
+    } catch (error) {
+        return false;
+    }
+}
+
+// Render game board
+function renderBoard() {
+    const board = document.getElementById('gameBoard');
+    board.innerHTML = '';
+    
+    for (let i = 0; i < maxGuesses; i++) {
+        for (let j = 0; j < 5; j++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            
+            if (guesses[i]) {
+                const letter = guesses[i].word[j] || '';
+                cell.textContent = letter;
+                
+                if (letter) {
+                    cell.classList.add('filled');
+                    
+                    if (guesses[i].word[j] === currentWord[j]) {
+                        cell.classList.add('correct');
+                    } else if (currentWord.includes(guesses[i].word[j])) {
+                        cell.classList.add('present');
+                    } else {
+                        cell.classList.add('absent');
+                    }
+                }
+            } else if (i === guesses.length && currentGuess[j]) {
+                cell.textContent = currentGuess[j];
+                cell.classList.add('filled');
+            }
+            
+            board.appendChild(cell);
+        }
+    }
+    
+    updateKeyboard();
+}
+
+// Update keyboard colors
+function updateKeyboard() {
+    const keys = document.querySelectorAll('.key');
+    keys.forEach(key => {
+        const letter = key.textContent;
+        if (letter === 'ENTER' || letter === '⌫') return;
+        
+        key.classList.remove('correct', 'present', 'absent');
+        
+        // Check all guesses for this letter
+        for (const guess of guesses) {
+            const index = guess.word.indexOf(letter);
+            if (index !== -1) {
+                if (guess.word[index] === currentWord[index]) {
+                    key.classList.add('correct');
+                    break;
+                } else if (currentWord.includes(letter)) {
+                    key.classList.add('present');
+                } else {
+                    key.classList.add('absent');
+                }
+            }
+        }
+    });
+}
+
+// Initialize keyboard
+function initKeyboard() {
+    const keyboard = document.getElementById('keyboard');
+    const layout = [
+        ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+        ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+        ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '⌫']
+    ];
+    
+    layout.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'keyboard-row';
+        
+        row.forEach(key => {
+            const keyBtn = document.createElement('button');
+            keyBtn.className = 'key';
+            if (key === 'ENTER' || key === '⌫') {
+                keyBtn.classList.add('wide');
+            }
+            keyBtn.textContent = key;
+            keyBtn.addEventListener('click', () => handleKeyPress(key));
+            rowDiv.appendChild(keyBtn);
+        });
+        
+        keyboard.appendChild(rowDiv);
+    });
+}
+
+// Handle key press
+function handleKeyPress(key) {
+    if (gameOver || !currentWord) return;
+    
+    if (key === 'ENTER') {
+        submitGuess();
+    } else if (key === '⌫') {
+        currentGuess = currentGuess.slice(0, -1);
+        renderBoard();
+    } else if (currentGuess.length < 5) {
+        currentGuess += key;
+        renderBoard();
+    }
+}
+
+// Submit guess
+async function submitGuess() {
+    if (currentGuess.length !== 5) {
+        showMessage('Word must be 5 letters', 'error');
+        return;
+    }
+    
+    // Validate word exists
+    const isValid = await validateWord(currentGuess);
+    if (!isValid) {
+        showMessage('Not a valid word!', 'error');
+        return;
+    }
+    
+    const result = checkGuess(currentGuess);
+    guesses.push({ word: currentGuess, result });
+    currentGuess = '';
+    
+    if (currentWord === guesses[guesses.length - 1].word) {
+        gameWon = true;
+        gameOver = true;
+        showMessage(`Congratulations! You won in ${guesses.length} ${guesses.length === 1 ? 'guess' : 'guesses'}!`, 'success');
+    } else if (guesses.length >= maxGuesses) {
+        gameOver = true;
+        showMessage(`Game Over! The word was: ${currentWord}`, 'error');
+    }
+    
+    renderBoard();
+}
+
+// Check guess and return result
+function checkGuess(guess) {
+    const result = [];
+    const wordArray = currentWord.split('');
+    const guessArray = guess.split('');
+    
+    // First pass: mark correct positions
+    for (let i = 0; i < 5; i++) {
+        if (guessArray[i] === wordArray[i]) {
+            result[i] = 'correct';
+            wordArray[i] = null; // Mark as used
+        }
+    }
+    
+    // Second pass: mark present letters
+    for (let i = 0; i < 5; i++) {
+        if (result[i]) continue;
+        
+        const letterIndex = wordArray.indexOf(guessArray[i]);
+        if (letterIndex !== -1) {
+            result[i] = 'present';
+            wordArray[letterIndex] = null; // Mark as used
+        } else {
+            result[i] = 'absent';
+        }
+    }
+    
+    return result;
+}
+
+// Show message
+function showMessage(text, type = 'info') {
+    const message = document.getElementById('message');
+    message.textContent = text;
+    message.className = `message ${type}`;
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', () => {
+    initKeyboard();
+    initGame();
+    
+    // Keyboard input
+    document.addEventListener('keydown', (e) => {
+        if (gameOver || !currentWord) return;
+        
+        if (e.key === 'Enter') {
+            submitGuess();
+        } else if (e.key === 'Backspace') {
+            currentGuess = currentGuess.slice(0, -1);
+            renderBoard();
+        } else if (e.key.match(/^[a-zA-Z]$/)) {
+            if (currentGuess.length < 5) {
+                currentGuess += e.key.toUpperCase();
+                renderBoard();
+            }
+        }
+    });
+    
+    // New puzzle button
+    document.getElementById('newPuzzle').addEventListener('click', () => {
+        initGame();
+    });
+    
+    // Share puzzle button
+    document.getElementById('sharePuzzle').addEventListener('click', () => {
+        const seed = document.getElementById('seedInput').value || gameSeed;
+        navigator.clipboard.writeText(seed).then(() => {
+            showMessage('Seed copied to clipboard!', 'success');
+        });
+    });
+    
+    // Load seed button
+    document.getElementById('loadSeed').addEventListener('click', () => {
+        const seed = document.getElementById('seedInput').value;
+        if (seed) {
+            initGame(parseInt(seed));
+        } else {
+            showMessage('Please enter a seed', 'error');
+        }
+    });
+});
+

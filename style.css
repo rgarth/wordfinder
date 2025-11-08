@@ -1,0 +1,210 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 100%;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 2.5em;
+}
+
+.controls {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.seed-display {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.seed-display label {
+    font-weight: 600;
+    color: #555;
+}
+
+#seedInput {
+    padding: 8px 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    min-width: 200px;
+}
+
+.btn {
+    padding: 10px 20px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn:hover {
+    background: #5568d3;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 30px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.cell {
+    aspect-ratio: 1;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    background: white;
+    transition: all 0.3s;
+}
+
+.cell.filled {
+    border-color: #333;
+    animation: pop 0.2s;
+}
+
+.cell.correct {
+    background: #6aaa64;
+    color: white;
+    border-color: #6aaa64;
+}
+
+.cell.present {
+    background: #c9b458;
+    color: white;
+    border-color: #c9b458;
+}
+
+.cell.absent {
+    background: #787c7e;
+    color: white;
+    border-color: #787c7e;
+}
+
+@keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.keyboard {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.keyboard-row {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+}
+
+.key {
+    padding: 12px 16px;
+    background: #d3d6da;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-width: 40px;
+}
+
+.key:hover {
+    background: #c0c3c7;
+}
+
+.key:active {
+    transform: scale(0.95);
+}
+
+.key.correct {
+    background: #6aaa64;
+    color: white;
+}
+
+.key.present {
+    background: #c9b458;
+    color: white;
+}
+
+.key.absent {
+    background: #787c7e;
+    color: white;
+}
+
+.key.wide {
+    min-width: 80px;
+}
+
+.message {
+    text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    min-height: 30px;
+    margin-top: 20px;
+}
+
+.message.success {
+    color: #6aaa64;
+}
+
+.message.error {
+    color: #d32f2f;
+}
+
+.message.info {
+    color: #667eea;
+}
+

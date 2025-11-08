@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wordle Clone - Seed Puzzles</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Wordle Clone</h1>
+            <div class="controls">
+                <button id="newPuzzle" class="btn">New Puzzle</button>
+                <button id="sharePuzzle" class="btn">Share Puzzle</button>
+            </div>
+            <div class="seed-display">
+                <label for="seedInput">Seed:</label>
+                <input type="text" id="seedInput" placeholder="Enter seed or leave empty for random">
+                <button id="loadSeed" class="btn">Load Seed</button>
+            </div>
+        </header>
+
+        <div class="game-board" id="gameBoard"></div>
+
+        <div class="keyboard" id="keyboard"></div>
+
+        <div class="message" id="message"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
