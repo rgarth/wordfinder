@@ -77,9 +77,10 @@ function renderBoard() {
                 if (letter) {
                     cell.classList.add('filled');
                     
-                    if (guesses[i].word[j] === currentWord[j]) {
+                    // Use the result from checkGuess which properly handles duplicate letters
+                    if (guesses[i].result[j] === 'correct') {
                         cell.classList.add('correct');
-                    } else if (currentWord.includes(guesses[i].word[j])) {
+                    } else if (guesses[i].result[j] === 'present') {
                         cell.classList.add('present');
                     } else {
                         cell.classList.add('absent');
@@ -142,7 +143,12 @@ function initKeyboard() {
             if (key === 'ENTER' || key === '⌫') {
                 keyBtn.classList.add('wide');
             }
-            keyBtn.textContent = key;
+            // Use ⏎ symbol for ENTER
+            if (key === 'ENTER') {
+                keyBtn.textContent = '⏎';
+            } else {
+                keyBtn.textContent = key;
+            }
             keyBtn.addEventListener('click', () => handleKeyPress(key));
             rowDiv.appendChild(keyBtn);
         });
