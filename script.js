@@ -48,16 +48,16 @@ function generateSeed() {
 
 // Load puzzle word using seed-based selection
 function loadPuzzleWord() {
-    // Use seed to pick a word deterministically from the word list
-    const wordIndex = seededRandom.nextInt(WORD_LIST.length);
-    currentWord = WORD_LIST[wordIndex].toUpperCase();
+    // Use seed to pick a word deterministically from Wordle answers only
+    const wordIndex = seededRandom.nextInt(WORDLE_ANSWERS.length);
+    currentWord = WORDLE_ANSWERS[wordIndex].toUpperCase();
     
     console.log('Puzzle word loaded:', currentWord);
 }
 
-// Validate word - check if it's in our word list
+// Validate word - check if it's in allowed guesses (includes all valid Wordle guesses)
 function validateWord(word) {
-    return WORD_LIST.includes(word.toLowerCase());
+    return WORDLE_ALLOWED_GUESSES.includes(word.toLowerCase());
 }
 
 // Render game board
