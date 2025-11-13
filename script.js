@@ -246,14 +246,22 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Keyboard input
     document.addEventListener('keydown', (e) => {
+        // If focus is on the seed input, don't interfere
+        if (document.activeElement === document.getElementById('seedInput')) {
+            return;
+        }
+        
         if (gameOver || !currentWord) return;
         
         if (e.key === 'Enter') {
+            e.preventDefault();
             submitGuess();
         } else if (e.key === 'Backspace') {
+            e.preventDefault();
             currentGuess = currentGuess.slice(0, -1);
             renderBoard();
         } else if (e.key.match(/^[a-zA-Z]$/)) {
+            e.preventDefault();
             if (currentGuess.length < 5) {
                 currentGuess += e.key.toUpperCase();
                 renderBoard();
